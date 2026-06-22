@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>log · WiFi Tool</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#0b0e14; color:#b0c7e0; font-family:'Courier New',monospace; padding:20px; }
+        .container { max-width:600px; margin:0 auto; }
+        .header { display:flex; justify-content:space-between; border-bottom:1px solid #2a3a4a; padding-bottom:8px; margin-bottom:20px; }
+        .header span { color:#6a8ab0; }
+        .badge { background:#1a2a3a; padding:2px 12px; border-radius:12px; color:#8ab0d0; font-size:14px; }
+        .card { background:#121a24; border:1px solid #1e2e3e; padding:18px; border-radius:8px; }
+        .card h3 { color:#b8d8f0; margin-bottom:12px; border-bottom:1px dashed #1e2e3e; padding-bottom:6px; }
+        .row { display:flex; gap:10px; margin:10px 0; flex-wrap:wrap; align-items:center; }
+        .row label { min-width:100px; color:#8aaac0; }
+        select, input, button { background:#0a121c; border:1px solid #1e3042; color:#b0cce0; padding:6px 12px; border-radius:4px; font-family:inherit; }
+        input { min-width:200px; }
+        button { background:#1a2a3a; cursor:pointer; }
+        button:hover { background:#2a4058; }
+        button:disabled { opacity:0.4; cursor:not-allowed; }
+        .output { background:#0a0f16; padding:12px; border-radius:4px; margin-top:12px; border-left:3px solid #3a6a8a; font-size:14px; word-break:break-all; white-space:pre-wrap; min-height:100px; }
+        .status { color:#5a7a8a; font-size:13px; margin-top:8px; }
+        .changelog { margin-top:20px; border-top:1px solid #1a2a3a; padding-top:12px; font-size:13px; color:#6a8aa0; }
+        .progress-bar { width:100%; height:4px; background:#0a121c; margin-top:8px; border-radius:2px; overflow:hidden; display:none; }
+        .progress-bar.active { display:block; }
+        .progress-fill { height:100%; width:0%; background:#3a8aba; transition:width 0.3s; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <span>NUKER · <span style="color:#d0e0f0;">—/—</span> · HOME</span>
+        <span class="badge">Operator · 9 free · 0 vip</span>
+    </div>
+
+    <div class="card">
+        <h3> Wi-Fi Nuker.fysh</h3>
+        <div class="row">
+            <label>SSID:</label>
+            <input type="text" id="wifiSSID" value="MyHome_5G" placeholder="WiFi name">
+        </div>
+        <div class="row">
+            <label>Mode:</label>
+            <select id="wifiMode">
+                <option value="password">Password (WPA2)</option>
+                <option value="ip">IP Address</option>
+            </select>
+        </div>
+        <div class="row">
+            <button id="genWifi">▶ Crack</button>
+        </div>
+        <div class="progress-bar" id="wifiProgress"><div class="progress-fill" id="wifiFill"></div></div>
+        <div class="output" id="wifiOutput">Ready</div>
+        <div class="status">ⓘ WPA2 handshake capture · brute force simulation</div>
+    </div>
+
+    <div class="changelog">
+        <span>GitHub · Discord · Star · Changelog · Setup · Premium · Credits · Liens / MAJ · MORE DOWN</span>
+        <br><span style="color:#3a5a6a;">777 · MONITOR · ! MAJ · READY</span>
+    </div>
+</div>
+
+<script>
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+    function randomString(len) {
+        let out = "";
+        for(let i=0;i<len;i++) out += chars[Math.floor(Math.random()*chars.length)];
+        return out;
+    }
+    function getRandomLen() {
+        return Math.floor(Math.random() * 21) + 10;
+    }
+    function randomMAC() {
+        const parts = [];
+        for(let i=0; i<6; i++) {
+            const hex = Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0');
+            parts.push(hex);
+        }
+        return parts.join('-');
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    async function runBruteforce(outputEl, progressFill, finalResult) {
+        const btn = document.getElementById('genWifi');
+        btn.disabled = true;
+        const progressBar = progressFill.parentElement;
+        progressBar.classList.add('active');
+
+        const statuses = [
+            "[*] Capturing handshake...",
+            "[*] Extracting PMKID...",
+            "[*] Loading rainbow tables...",
+            "[*] Cracking MIC...",
+            "[*] Testing keys (14,203/s)...",
+            "[*] Session resumption..."
+        ];
+
+        let lines = [];
+        for(let i = 0; i < statuses.length; i++) {
+            lines.push(statuses[i]);
+            outputEl.textContent = lines.join('\n');
+            progressFill.style.width = Math.min((i + 1) / statuses.length * 85, 85) + '%';
+            await sleep(150 + Math.random() * 200);
+        }
+
+        progressFill.style.width = '100%';
+        await sleep(400);
+
+        outputEl.textContent = finalResult;
+
+        progressBar.classList.remove('active');
+        btn.disabled = false;
+    }
+
+    // WIFI
+    document.getElementById('genWifi').addEventListener('click', function() {
+        const ssid = document.getElementById('wifiSSID').value.trim() || "Unknown_SSID";
+        const mode = document.getElementById('wifiMode').value;
+        const output = document.getElementById('wifiOutput');
+        const fill = document.getElementById('wifiFill');
+
+        let final;
+        if(mode === 'password') {
+            const len = getRandomLen();
+            const pass = randomString(len);
+            const mac = randomMAC();
+            final = `[+] SSID: "${ssid}"\n[+] PSK: "${pass}"\n[+] MAC: ${mac}\n[+] PMKID verified · session active`;
+        } else {
+            const a = Math.floor(Math.random()*255)+1;
+            const b = Math.floor(Math.random()*255);
+            const c = Math.floor(Math.random()*255);
+            const d = Math.floor(Math.random()*255);
+            const mac = randomMAC();
+            final = `[+] SSID: "${ssid}"\n[+] Gateway: 192.168.${Math.floor(Math.random()*255)}.1\n[+] Client IP: ${a}.${b}.${c}.${d}\n[+] MAC: ${mac}\n[+] MITM established`;
+        }
+        runBruteforce(output, fill, final);
+    });
+</script>
+</body>
+</html>
